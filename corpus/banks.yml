@@ -1,0 +1,54 @@
+# USER-EDITED INPUT — the banks whose SEC filings are pulled each quarter.
+# Each entry needs a name plus either a ticker or, for filers with no public
+# stock ticker (e.g. US intermediate holding companies), a zero-padded cik.
+banks:
+  - name: JPMorgan Chase
+    ticker: JPM
+  - name: Bank of America
+    ticker: BAC
+  - name: Citigroup
+    ticker: C
+  - name: Wells Fargo
+    ticker: WFC
+  - name: Goldman Sachs
+    ticker: GS
+  - name: Morgan Stanley
+    ticker: MS
+  - name: Bank of New York Mellon
+    ticker: BK
+  - name: State Street
+    ticker: STT
+  - name: U.S. Bancorp
+    ticker: USB
+  - name: Truist Financial
+    ticker: TFC
+  - name: PNC Financial
+    ticker: PNC
+  - name: Capital One
+    ticker: COF
+  - name: Ally Financial
+    ticker: ALLY
+  - name: Citizens Financial
+    ticker: CFG
+  - name: Huntington Bancshares
+    ticker: HBAN
+  - name: KeyCorp
+    ticker: KEY
+  - name: Regions Financial
+    ticker: RF
+  - name: Fifth Third Bancorp
+    ticker: FITB
+  - name: M&T Bank
+    ticker: MTB
+  - name: Northern Trust
+    ticker: NTRS
+  - name: American Express
+    ticker: AXP
+  - name: Charles Schwab
+    ticker: SCHW
+  - name: First Citizens BancShares
+    ticker: FCNCA
+  - name: Synchrony Financial
+    ticker: SYF
+  - name: Santander Holdings USA
+    cik: "0000811830"

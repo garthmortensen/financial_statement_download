@@ -16,6 +16,7 @@ dependencies = [
     "structlog>=25.5.0",
     "pyyaml>=6.0",
     "sec-edgar-downloader>=5.0",
+    "tenacity>=8.2",
     "matplotlib>=3.8",
     "litellm>=1.88.1",
     "langchain-huggingface>=1.2.2",

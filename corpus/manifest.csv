@@ -1,0 +1,7 @@
+source,name,category,filetype,link,method,pulled,path
+SEC EDGAR,JPMORGAN CHASE & CO 2026-03-31,10-Q,htm,https://www.sec.gov/Archives/edgar/data/19617/000162828026029344/jpm-20260331.htm,API,legacy,corpus/raw_data/sec/sec-edgar-filings/JPM/10-Q/0001628280-26-029344
+SEC EDGAR,JPMORGAN CHASE & CO 2025-12-31,10-K,htm,https://www.sec.gov/Archives/edgar/data/19617/000162828026008131/jpm-20251231.htm,API,legacy,corpus/raw_data/sec/sec-edgar-filings/JPM/10-K/0001628280-26-008131
+SEC EDGAR,JPMORGAN CHASE & CO 2025-09-30,10-Q,htm,https://www.sec.gov/Archives/edgar/data/19617/000162828025048859/jpm-20250930.htm,API,legacy,corpus/raw_data/sec/sec-edgar-filings/JPM/10-Q/0001628280-25-048859
+SEC EDGAR,JPMORGAN CHASE & CO 2025-06-30,10-Q,htm,https://www.sec.gov/Archives/edgar/data/19617/000001961725000615/jpm-20250630.htm,API,legacy,corpus/raw_data/sec/sec-edgar-filings/JPM/10-Q/0000019617-25-000615
+SEC EDGAR,JPMORGAN CHASE & CO 2025-03-31,10-Q,htm,https://www.sec.gov/Archives/edgar/data/19617/000001961725000421/jpm-20250331.htm,API,legacy,corpus/raw_data/sec/sec-edgar-filings/JPM/10-Q/0000019617-25-000421
+website,JPMorgan 2024 Annual Report,IR,pdf,https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/annualreport-2024.pdf,Manual,legacy,corpus/raw_data/ir/jpmorgan_2024_annual_report.pdf

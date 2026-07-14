@@ -1,0 +1,8 @@
+# USER-EDITED INPUT — non-SEC documents to download (IR decks, annual reports, ...).
+# Scripts only read this file; the download record is written to corpus/manifest.yml.
+# filetype is optional: inferred from the URL suffix when omitted.
+sources:
+  - name: JPMorgan 2024 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/annualreport-2024.pdf

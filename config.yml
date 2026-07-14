@@ -1,36 +1,32 @@
+# Settings only. The bank list lives in corpus/banks.yml and non-SEC sources in
+# corpus/sources.yml (both user-edited). The download record is written by the
+# scripts to corpus/manifest.yml (program-owned — do not hand-edit).
+
 sec:
   # SEC requires name + email in the User-Agent header for EDGAR API access.
   # Set SEC_USER_NAME and SEC_USER_EMAIL in .env
   # See: https://www.sec.gov/os/accessing-edgar-data
 
-  # Forms to download, with max number of *new* filings to fetch per ticker per run.
-  # Already-downloaded accessions are skipped, so quarterly reruns only pick up new filings.
+  # Forms to download, with max number of *new* filings to fetch per bank per run.
+  # Accessions recorded in the manifest are skipped, so quarterly reruns only
+  # pick up new filings.
   forms:
     10-K: 1
     10-Q: 4
 
-  # Output directory for downloaded filings.
+  # Base output directory. Each quarterly run stores its pull in a separate
+  # subdirectory, e.g. corpus/raw_data/sec/2026Q3/.
   output_dir: "corpus/raw_data/sec"
 
-  # Default tickers to download when no CLI args are given.
-  tickers:
-    - JPM   # JPMorgan Chase
-    - BAC   # Bank of America
-    - C     # Citigroup
-    - WFC   # Wells Fargo
-    - GS    # Goldman Sachs
-    - MS    # Morgan Stanley
-    - BK    # Bank of New York Mellon
-    - STT   # State Street
-    - USB   # U.S. Bancorp
-    - TFC   # Truist Financial
-    - PNC   # PNC Financial
-    - COF   # Capital One
-    - ALLY  # Ally Financial
-    - CFG   # Citizens Financial
-    - HBAN  # Huntington Bancshares
-    - KEY   # KeyCorp
-    - RF    # Regions Financial
-    - FITB  # Fifth Third Bancorp
-    - MTB   # M&T Bank
-    - NTRS  # Northern Trust
+  # User-edited list of banks to pull filings for.
+  banks_file: "corpus/banks.yml"
+
+downloader:
+  # User-edited list of non-SEC documents to download.
+  sources_file: "corpus/sources.yml"
+
+  # Base output directory; files land in <output_dir>/<category>/.
+  output_dir: "corpus/raw_data"
+
+# Program-owned record of every downloaded document.
+manifest_file: "corpus/manifest.yml"
