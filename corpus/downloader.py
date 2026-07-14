@@ -19,7 +19,8 @@ USER_AGENT = (
 
 def sanitize(text):
     text = re.sub(r"[^\w\s-]", "", text)  # Remove special chars except whitespace and hyphens
-    return re.sub(r"[\s_-]+", "_", text).strip("_").lower()  # Replace whitespace/hyphens with single underscore
+    # Replace whitespace/hyphens with single underscore
+    return re.sub(r"[\s_-]+", "_", text).strip("_").lower()
 
 
 def download_with_wget(url, filepath):
@@ -49,7 +50,8 @@ def download_with_curl(url, filepath):
     tmp = filepath + ".part"
     try:
         subprocess.run(
-            # curl flags: --fail, --location, --silent, --max-time, --retry, -A (user-agent), -o (output)
+            # curl flags: --fail, --location, --silent, --max-time, --retry,
+            # -A (user-agent), -o (output)
             [curl, "--fail", "--location", "--silent", f"--max-time={TIMEOUT}",
              "--retry=3", "-A", USER_AGENT, "-o", tmp, url],
             check=True, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL,
@@ -106,7 +108,10 @@ def download_files():
         if not url:
             continue
 
-        filepath = os.path.join(OUTPUT_DIR, f"{sanitize(category)}_{sanitize(name)}.{filetype}")
+        # Route each file into a per-category subdir, e.g. raw_data/ir/, raw_data/10-k/
+        category_dir = os.path.join(OUTPUT_DIR, sanitize(category))
+        Path(category_dir).mkdir(parents=True, exist_ok=True)
+        filepath = os.path.join(category_dir, f"{sanitize(name)}.{filetype}")
 
         if os.path.exists(filepath):
             print(f"  Exists: {name}")

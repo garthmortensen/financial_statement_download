@@ -3548,6 +3548,15 @@ wheels = [
 ]
 
 [[package]]
+name = "pyrate-limiter"
+version = "4.4.0"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/19/27/e564f33ea085c63d5540f707b31aeb50a4992eac2da655dc02435a760a07/pyrate_limiter-4.4.0.tar.gz", hash = "sha256:2c0c720c4fa16c5d8199e4821bf34507fb49c007a25b786cec6fb94ffd0844aa", size = 90955, upload-time = "2026-06-14T10:52:03.021Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/2b/77/2b5ea2e5e343fd7f74ba9c50a282d7cb66d1be3d12bd647510338d78fcf1/pyrate_limiter-4.4.0-py3-none-any.whl", hash = "sha256:f738dfa3c7ac1222a5ea3d31e00cfd31b5592b13ade4077afe9e8ac6293381f5", size = 43102, upload-time = "2026-06-14T10:52:01.334Z" },
+]
+
+[[package]]
 name = "pytest"
 version = "9.0.2"
 source = { registry = "https://pypi.org/simple" }
@@ -3665,6 +3674,7 @@ dependencies = [
     { name = "pypdf" },
     { name = "python-dotenv" },
     { name = "pyyaml" },
+    { name = "sec-edgar-downloader" },
     { name = "sentence-transformers" },
     { name = "streamlit" },
     { name = "structlog" },
@@ -3713,6 +3723,7 @@ requires-dist = [
     { name = "pyyaml", specifier = ">=6.0" },
     { name = "ragas", marker = "extra == 'ragas'", specifier = ">=0.4" },
     { name = "ruff", marker = "extra == 'dev'", specifier = ">=0.4" },
+    { name = "sec-edgar-downloader", specifier = ">=5.0" },
     { name = "sentence-transformers", specifier = ">=5.2.3" },
     { name = "sentence-transformers", marker = "extra == 'hf'", specifier = ">=3.0" },
     { name = "streamlit", specifier = ">=1.35" },
@@ -4222,6 +4233,19 @@ wheels = [
     { url = "https://files.pythonhosted.org/packages/52/52/e57eceff0e342a1f50e274264ed47497b59e6a4e3118808ee58ddda7b74a/scipy-1.17.1-cp314-cp314t-musllinux_1_2_x86_64.whl", hash = "sha256:a77cbd07b940d326d39a1d1b37817e2ee4d79cb30e7338f3d0cddffae70fcaa2", size = 37682317, upload-time = "2026-02-23T00:22:18.513Z" },
     { url = "https://files.pythonhosted.org/packages/11/2f/b29eafe4a3fbc3d6de9662b36e028d5f039e72d345e05c250e121a230dd4/scipy-1.17.1-cp314-cp314t-win_amd64.whl", hash = "sha256:eb092099205ef62cd1782b006658db09e2fed75bffcae7cc0d44052d8aa0f484", size = 37345327, upload-time = "2026-02-23T00:22:24.442Z" },
     { url = "https://files.pythonhosted.org/packages/07/39/338d9219c4e87f3e708f18857ecd24d22a0c3094752393319553096b98af/scipy-1.17.1-cp314-cp314t-win_arm64.whl", hash = "sha256:200e1050faffacc162be6a486a984a0497866ec54149a01270adc8a59b7c7d21", size = 25489165, upload-time = "2026-02-23T00:22:29.563Z" },
+]
+
+[[package]]
+name = "sec-edgar-downloader"
+version = "5.1.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "pyrate-limiter" },
+    { name = "requests" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/89/18/56eb50a6793750b8592ca22c91dcc6a3e3d849a3bf3cb12c2afc55454aa8/sec_edgar_downloader-5.1.0.tar.gz", hash = "sha256:cb7b1a152b2bce9da999d0893e3ec4482e1e8bc53c5ffba15edbae0acf547f6c", size = 33577, upload-time = "2026-02-02T02:06:57.327Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f3/4a/6e769e04a8d7fa44edfe7f08aae3dd02bbcd2aaec9bd12559dbaddcb4b02/sec_edgar_downloader-5.1.0-py3-none-any.whl", hash = "sha256:2bcd2350b8c30f5bb710accfff55ebcf442e4ab9a7a7c5f2b410ffe265ff3269", size = 14953, upload-time = "2026-02-02T02:06:55.588Z" },
 ]
 
 [[package]]
