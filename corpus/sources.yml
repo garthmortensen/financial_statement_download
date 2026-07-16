@@ -1,8 +1,31 @@
-# USER-EDITED INPUT — non-SEC documents to download (IR decks, annual reports, ...).
-# Scripts only read this file; the download record is written to corpus/manifest.yml.
-# filetype is optional: inferred from the URL suffix when omitted.
+# USER-EDITED INPUT
+# non-SEC docs to download (IR decks, annual reports, ...).
+
+# Scripts only read this file
+# download records written to corpus/downloads_manifest.yml.
+# filetype is optional
 sources:
+  - name: JPMorgan 2023 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/annualreport-2023.pdf
   - name: JPMorgan 2024 Annual Report
     category: IR
     filetype: pdf
     link: https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/annualreport-2024.pdf
+  - name: JPMorgan 2025 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.jpmorganchase.com/content/dam/jpmc/jpmorgan-chase-and-co/investor-relations/documents/annualreport-2025.pdf
+  - name: Goldman Sachs 2023 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.goldmansachs.com/investor-relations/financials/current/annual-reports/2023-annual-report/multimedia/2023-annual-report.pdf
+  - name: Goldman Sachs 2024 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.goldmansachs.com/investor-relations/financials/current/annual-reports/2024-annual-report/multimedia/2024-annual-report.pdf
+  - name: Goldman Sachs 2025 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.goldmansachs.com/investor-relations/financials/current/annual-reports/2025/annual-report.pdf

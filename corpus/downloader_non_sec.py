@@ -1,10 +1,8 @@
 """
 Download the non-SEC documents listed in corpus/sources.yml (user-edited input).
 
-Links already recorded in corpus/manifest.yml are skipped, so reruns only fetch
-new sources; every successful download is appended to the manifest with the
-current quarterly run id. Files land in <output_dir>/<category>/<name>.<filetype>.
-Transient failures are retried with exponential backoff via tenacity.
+Files land in <output_dir>/<category>/<name>.<filetype>. Transient failures are
+retried with exponential backoff via tenacity.
 
 Usage:
     python corpus/downloader_non_sec.py
@@ -21,13 +19,15 @@ import requests
 import yaml
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential_jitter
 
-from manifest_utils import append_entries, current_run_id, load_manifest, manifest_links
+from log_utils import setup_logging
 
 TIMEOUT = 60
 USER_AGENT = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36"
 )
+
+log = None  # bound in __main__ via setup_logging
 
 
 class TransientHTTPError(Exception):
@@ -72,29 +72,27 @@ def fetch(url: str) -> bytes:
 
 def polite_sleep_between_successes():
     delay = random.uniform(1, 3)
-    print(f"  Sleeping {delay:.1f}s...")
+    log.info("sleeping", seconds=round(delay, 1))
     time.sleep(delay)
 
 
 def save_summary(results):
-    print("\n--- Download Summary ---")
+    counts = {"OK": 0, "Skipped": 0, "Failed": 0}
     for result in results:
-        print(f"  {result['status']:8}  {result['category']} / {result['name']}")
+        counts[result["status"]] += 1
+    log.info("run_finished", ok=counts["OK"], skipped=counts["Skipped"],
+             failed=counts["Failed"])
 
 
 def download_files() -> int:
-    """Download new sources and record them in the manifest. Returns failure count."""
+    """Download sources listed in sources.yml. Returns failure count."""
     cfg = load_config()
-    downloader_cfg = cfg["downloader"]
-    manifest_file = cfg["manifest_file"]
+    downloader_cfg = cfg["non_sec_download_settings"]
     output_dir = Path(downloader_cfg["output_dir"])
 
     sources = load_sources(downloader_cfg["sources_file"])
-    known_links = manifest_links(load_manifest(manifest_file))
-    run_id = current_run_id()
 
     results = []
-    new_entries = []
     for source in sources:
         name = str(source.get("name", "")).strip()
         category = str(source.get("category", "")).strip()
@@ -109,44 +107,29 @@ def download_files() -> int:
 
         result_info = {"name": name, "category": category}
 
-        if url in known_links:
-            print(f"  In manifest, skipping: {name}")
-            results.append({**result_info, "status": "Skipped"})
-            continue
-
         # Route each file into a per-category subdir, e.g. raw_data/ir/
         category_dir = output_dir / sanitize(category)
         category_dir.mkdir(parents=True, exist_ok=True)
         filepath = category_dir / f"{sanitize(name)}.{filetype}"
 
         if filepath.exists():
-            print(f"  Exists on disk, skipping: {name}")
+            log.info("skipped_exists_on_disk", name=name, path=str(filepath))
             results.append({**result_info, "status": "Skipped"})
             continue
 
-        print(f"  Downloading: {name}...")
+        log.info("downloading", name=name, url=url)
         try:
             content = fetch(url)
         except Exception as exc:
-            print(f"  Failed: {exc}")
+            log.error("download_failed", name=name, url=url, error=str(exc))
             results.append({**result_info, "status": "Failed"})
             continue
 
         filepath.write_bytes(content)
+        log.info("downloaded", name=name, path=str(filepath), bytes=len(content))
         results.append({**result_info, "status": "OK"})
-        new_entries.append({
-            "source": "website",
-            "name": name,
-            "category": category,
-            "filetype": filetype,
-            "link": url,
-            "method": "Manual",
-            "pulled": run_id,
-            "path": str(filepath),
-        })
         polite_sleep_between_successes()
 
-    append_entries(new_entries, manifest_file)
     save_summary(results)
 
     failure_count = 0
@@ -157,5 +140,7 @@ def download_files() -> int:
 
 
 if __name__ == "__main__":
+    config = load_config()
+    log = setup_logging(config["log_dir"], "downloader_non_sec")
     if download_files():
         sys.exit(1)

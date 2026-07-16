@@ -1,14 +1,9 @@
 """
 Download SEC filings (10-K, 10-Q, ...) via EDGAR for the banks in corpus/banks.yml.
 
-Designed to be run once per quarter: each run stores its downloads in a separate
-subdirectory named after the current quarter (e.g. <output_dir>/2026Q3/), and
-accessions already recorded in corpus/manifest.yml are skipped, so each pull
-contains only the filings that are new since the last run. Every downloaded
-filing is appended to the manifest.
-
-To save disk space, only the primary document of each filing is kept:
-full-submission.txt is deleted after download.
+Each run stores its downloads in a separate subdirectory named after the current
+quarter (e.g. <output_dir>/2026Q3/). To save disk space, only the primary document
+of each filing is kept: full-submission.txt is deleted after download.
 
 Usage:
     python corpus/downloader_sec.py             # all banks from corpus/banks.yml
@@ -23,17 +18,18 @@ import os
 import sys
 from pathlib import Path
 
+import pandas as pd
 import requests
 import yaml
 from dotenv import load_dotenv
 from sec_edgar_downloader import Downloader
 from tenacity import retry, retry_if_exception_type, stop_after_attempt, wait_exponential_jitter
 
-from manifest_utils import append_entries, current_run_id, load_manifest, sec_accessions
+from log_utils import setup_logging
 
 load_dotenv()
 
-SUBMISSIONS_URL = "https://data.sec.gov/submissions/CIK{cik}.json"
+log = None  # bound in __main__ via setup_logging
 
 
 class TransientHTTPError(Exception):
@@ -63,21 +59,22 @@ def load_banks(banks_file: str) -> list[dict]:
 
 
 def bank_identifier(bank: dict) -> str:
-    """Ticker if the bank has one, otherwise its zero-padded CIK."""
+    """Ticker or CIK for EDGAR API calls."""
     ticker = bank.get("ticker")
     if ticker:
         return str(ticker).upper()
     return str(bank["cik"])
 
 
-@retry(**RETRY_KWARGS)
-def _get_submissions(cik: str, user_agent: str) -> dict:
-    url = SUBMISSIONS_URL.format(cik=cik)
-    resp = requests.get(url, headers={"User-Agent": user_agent}, timeout=30)
-    if resp.status_code == 429 or resp.status_code >= 500:
-        raise TransientHTTPError(f"HTTP {resp.status_code} for {url}")
-    resp.raise_for_status()
-    return resp.json()
+def bank_folder_name(bank: dict) -> str:
+    """Folder name for downloaded files: ticker, then placeholder_ticker, then CIK."""
+    ticker = bank.get("ticker")
+    if ticker:
+        return str(ticker).upper()
+    placeholder = bank.get("placeholder_ticker")
+    if placeholder:
+        return str(placeholder).upper()
+    return str(bank["cik"])
 
 
 @retry(**RETRY_KWARGS)
@@ -91,143 +88,99 @@ def _fetch_form(dl: Downloader, identifier: str, form: str, limit: int, skip: se
     )
 
 
-def fetch_filing_metadata(
-    dl: Downloader, identifier: str, forms: dict[str, int]
-) -> dict[str, dict]:
-    """Map accession number -> manifest fields for the bank's recent filings.
-
-    Note: only covers the "recent" submissions window (~1000 filings); filings
-    older than that get a minimal fallback manifest entry instead."""
-    if identifier.isdigit():
-        cik = identifier
-    else:
-        cik = dl.ticker_to_cik_mapping[identifier]
-    data = _get_submissions(cik, dl.user_agent)
-    company_name = data["name"]
-    recent = data["filings"]["recent"]
-
-    metadata = {}
-    for form, accession, primary_doc, report_date in zip(
-        recent["form"],
-        recent["accessionNumber"],
-        recent["primaryDocument"],
-        recent["reportDate"],
-    ):
-        if form not in forms:
-            continue
-        acc_no_dash = accession.replace("-", "")
-        link = (
-            f"https://www.sec.gov/Archives/edgar/data/"
-            f"{int(cik)}/{acc_no_dash}/{primary_doc}"
-        )
-        filetype = Path(primary_doc).suffix.lstrip(".") or "htm"
-        metadata[accession] = {
-            "source": "SEC EDGAR",
-            "name": f"{company_name} {report_date}",
-            "category": form,
-            "filetype": filetype,
-            "link": link,
-            "method": "API",
-        }
-    return metadata
-
-
-def prune_full_submission(accession_dir: Path) -> None:
-    """Keep only the primary document; the full submission (all exhibits, XBRL)
-    can be tens of MB per filing."""
-    full_submission = accession_dir / "full-submission.txt"
-    primary_document = accession_dir / "primary-document.html"
-    if full_submission.exists() and primary_document.exists():
-        full_submission.unlink()
-
-
-def record_new_filings(
-    run_dir: Path,
-    identifier: str,
-    form: str,
-    known: set[str],
-    metadata: dict[str, dict],
-    run_id: str,
-) -> list[dict]:
-    """Build manifest entries for accessions downloaded into this run's directory."""
+def prune_filings(run_dir: Path, identifier: str, form: str) -> None:
+    """Keep only primary-document.html in each accession dir; delete everything else."""
     filings_dir = run_dir / "sec-edgar-filings" / identifier / form
-    entries = []
     if not filings_dir.is_dir():
-        return entries
-
-    for accession_dir in sorted(filings_dir.iterdir()):
+        return
+    for accession_dir in filings_dir.iterdir():
         if not accession_dir.is_dir():
             continue
-        accession = accession_dir.name
-        if accession in known:
-            continue
-        prune_full_submission(accession_dir)
-        if accession in metadata:
-            entry = dict(metadata[accession])
-        else:
-            entry = {
-                "source": "SEC EDGAR",
-                "name": f"{identifier} {form} {accession}",
-                "category": form,
-                "filetype": "htm",
-                "link": "",
-                "method": "API",
-            }
-        entry["pulled"] = run_id
-        entry["path"] = str(accession_dir)
-        entries.append(entry)
-    return entries
+        for file in accession_dir.iterdir():
+            if file.name != "primary-document.html":
+                file.unlink()
+
+
+def quarter_range(start: str, end: str) -> list[str]:
+    """Return every quarter label from start to end inclusive, e.g.
+    quarter_range('2022Q3', '2023Q1') -> ['2022Q3', '2022Q4', '2023Q1']."""
+    quarters = []
+    for period in pd.period_range(start, end, freq="Q"):
+        quarters.append(str(period))
+    return quarters
 
 
 def download_filings(cfg: dict, banks: list[dict]) -> int:
-    """Pull new filings for each bank into this quarter's run directory.
-    Returns the number of failures."""
-    sec_cfg = cfg["sec"]
-    manifest_file = cfg["manifest_file"]
+    """Pull filings for each bank across all configured quarters.
+    Returns the total number of failures."""
+    sec_cfg = cfg["sec_download_settings"]
+    pull_cfg = sec_cfg["pull_quarters"]
+    quarters = quarter_range(pull_cfg["start"], pull_cfg["end"])
+    forms: dict[str, int] = sec_cfg["forms"]
+    base_dir = Path(sec_cfg["output_dir"])
 
     user_name = os.environ["SEC_USER_NAME"]
     user_email = os.environ["SEC_USER_EMAIL"]
 
-    run_id = current_run_id()
-    run_dir = Path(sec_cfg["output_dir"]) / run_id
-    run_dir.mkdir(parents=True, exist_ok=True)
-    print(f"Storing this pull in {run_dir}")
+    log.info("run_started", quarters=quarters, banks=len(banks))
 
-    dl = Downloader(user_name, user_email, run_dir)
-    forms: dict[str, int] = sec_cfg["forms"]
+    total_failures = []
+    for quarter in quarters:                                    # e.g. "2026Q3"
+        run_dir = base_dir / quarter                            # e.g. corpus/raw_data/sec/2026Q3
+        run_dir.mkdir(parents=True, exist_ok=True)
+        qlog = log.bind(quarter=quarter)
+        qlog.info("quarter_start", run_dir=str(run_dir))
 
-    known = sec_accessions(load_manifest(manifest_file))
+        dl = Downloader(user_name, user_email, run_dir)
 
-    new_entries = []
-    failures = []
-    for bank in banks:
-        identifier = bank_identifier(bank)
-        try:
-            metadata = fetch_filing_metadata(dl, identifier, forms)
-        except Exception as exc:
-            print(f"  FAILED metadata for {identifier}: {exc}")
-            failures.append(identifier)
-            continue
+        for bank in banks:
+            identifier = bank_identifier(bank)                  # e.g. "JPM" or "0000811830" (for API)
+            folder_name = bank_folder_name(bank)                # e.g. "JPM" or "SAN" (for folder)
+            blog = qlog.bind(bank=folder_name)
+            blog.info("bank_start")
+            for form, limit in forms.items():                   # e.g. form="10-K", limit=1
+                # Skip the download entirely if the form directory is already populated
+                target_form_dir = run_dir / "sec-edgar-filings" / folder_name / form
+                already_populated = False
+                if target_form_dir.is_dir():
+                    for entry in target_form_dir.iterdir():
+                        if entry.is_dir():
+                            already_populated = True
+                            break
+                if already_populated:
+                    blog.info("form_skipped", form=form)
+                    continue
+                try:
+                    count = _fetch_form(dl, identifier, form, limit, set())
+                except Exception as exc:
+                    blog.error("fetch_failed", form=form, error=str(exc))
+                    total_failures.append(f"{folder_name} {form}")
+                    continue
+                # For CIK-only banks, move downloaded dirs from CIK folder to placeholder folder
+                if identifier != folder_name:
+                    cik_form_dir = run_dir / "sec-edgar-filings" / identifier / form
+                    if cik_form_dir.is_dir():
+                        target_form_dir.mkdir(parents=True, exist_ok=True)
+                        for acc_dir in cik_form_dir.iterdir():
+                            if acc_dir.is_dir():
+                                acc_dir.rename(target_form_dir / acc_dir.name)
+                        cik_form_dir.rmdir()
+                        cik_bank_dir = run_dir / "sec-edgar-filings" / identifier
+                        try:
+                            cik_bank_dir.rmdir()
+                        except OSError:
+                            pass
+                # files now in run_dir/sec-edgar-filings/JPM/10-K/0001628280-26-008131/
+                prune_filings(run_dir, folder_name, form)
+                blog.info("form_done", form=form, downloaded=count)  # count=1
+            print()
 
-        for form, limit in forms.items():
-            skip = known.get((identifier, form), set())
-            print(f"Fetching up to {limit} new {form}(s) for {identifier} "
-                  f"({len(skip)} already in manifest) ...")
-            try:
-                count = _fetch_form(dl, identifier, form, limit, skip)
-            except Exception as exc:
-                print(f"  FAILED: {exc}")
-                failures.append(f"{identifier} {form}")
-                continue
-            entries = record_new_filings(run_dir, identifier, form, skip, metadata, run_id)
-            new_entries.extend(entries)
-            print(f"  OK  {count} new -> {run_dir / 'sec-edgar-filings' / identifier / form}")
+        qlog.info("quarter_done")
 
-    append_entries(new_entries, manifest_file)
-
-    if failures:
-        print(f"\n{len(failures)} failure(s): {', '.join(failures)}")
-    return len(failures)
+    if total_failures:
+        log.warning("run_failures", count=len(total_failures), failures=total_failures)
+    log.info("run_finished", failures=len(total_failures))
+    return len(total_failures)
 
 
 def select_banks(banks: list[dict], identifiers: list[str]) -> list[dict]:
@@ -237,7 +190,7 @@ def select_banks(banks: list[dict], identifiers: list[str]) -> list[dict]:
         identifier = raw_identifier.upper()
         match = None
         for bank in banks:
-            if bank_identifier(bank) == identifier:
+            if bank_identifier(bank) == identifier or bank_folder_name(bank) == identifier:
                 match = bank
                 break
         if match is not None:
@@ -251,7 +204,8 @@ def select_banks(banks: list[dict], identifiers: list[str]) -> list[dict]:
 
 if __name__ == "__main__":
     cfg = _load_config()
-    banks = load_banks(cfg["sec"]["banks_file"])
+    log = setup_logging(cfg["log_dir"], "downloader_sec")
+    banks = load_banks(cfg["sec_download_settings"]["banks_file"])
 
     args = sys.argv[1:]
     if args:

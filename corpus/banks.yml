@@ -1,6 +1,8 @@
 # USER-EDITED INPUT — the banks whose SEC filings are pulled each quarter.
 # Each entry needs a name plus either a ticker or, for filers with no public
 # stock ticker (e.g. US intermediate holding companies), a zero-padded cik.
+# Add placeholder_ticker alongside cik to give the download folder a readable
+# name instead of the raw CIK.
 banks:
   - name: JPMorgan Chase
     ticker: JPM
@@ -15,7 +17,7 @@ banks:
   - name: Morgan Stanley
     ticker: MS
   - name: Bank of New York Mellon
-    ticker: BK
+    ticker: BNY
   - name: State Street
     ticker: STT
   - name: U.S. Bancorp
@@ -51,4 +53,5 @@ banks:
   - name: Synchrony Financial
     ticker: SYF
   - name: Santander Holdings USA
+    placeholder_ticker: SAN
     cik: "0000811830"

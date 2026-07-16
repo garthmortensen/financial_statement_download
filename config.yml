@@ -1,32 +1,28 @@
-# Settings only. The bank list lives in corpus/banks.yml and non-SEC sources in
-# corpus/sources.yml (both user-edited). The download record is written by the
-# scripts to corpus/manifest.yml (program-owned — do not hand-edit).
+# Settings only
 
-sec:
-  # SEC requires name + email in the User-Agent header for EDGAR API access.
-  # Set SEC_USER_NAME and SEC_USER_EMAIL in .env
-  # See: https://www.sec.gov/os/accessing-edgar-data
-
-  # Forms to download, with max number of *new* filings to fetch per bank per run.
-  # Accessions recorded in the manifest are skipped, so quarterly reruns only
-  # pick up new filings.
+sec_download_settings:
   forms:
     10-K: 1
     10-Q: 4
 
-  # Base output directory. Each quarterly run stores its pull in a separate
-  # subdirectory, e.g. corpus/raw_data/sec/2026Q3/.
   output_dir: "corpus/raw_data/sec"
 
-  # User-edited list of banks to pull filings for.
+  # Quarter range to pull. Set start == end for a single quarterly run.
+  # For a backfill, e.g. start: 2022Q3 / end: 2026Q3 iterates every quarter
+  # in that range; each quarter gets its own subdirectory.
+  pull_quarters:
+    start: 2016Q1
+    end: 2026Q3
+
+  # list of banks to pull filings for
   banks_file: "corpus/banks.yml"
 
-downloader:
-  # User-edited list of non-SEC documents to download.
+non_sec_download_settings:
+  # User-edited list of non-SEC documents to download
   sources_file: "corpus/sources.yml"
 
-  # Base output directory; files land in <output_dir>/<category>/.
+  # Base output directory; files land in <output_dir>/<category>/
   output_dir: "corpus/raw_data"
 
-# Program-owned record of every downloaded document.
-manifest_file: "corpus/manifest.yml"
+# JSONL run logs are written here, one file per script run.
+log_dir: "logs"
