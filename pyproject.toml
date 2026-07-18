@@ -21,6 +21,7 @@ dependencies = [
     "litellm>=1.88.1",
     "langchain-huggingface>=1.2.2",
     "sentence-transformers>=5.2.3",
+    "pandas>=3.0.3",
 ]
 
 [project.optional-dependencies]

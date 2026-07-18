@@ -29,3 +29,39 @@ sources:
     category: IR
     filetype: pdf
     link: https://www.goldmansachs.com/investor-relations/financials/current/annual-reports/2025/annual-report.pdf
+  - name: Bank of America 2023 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://d1io3yog0oux5.cloudfront.net/_74e7c53fcbb73662d49406a8fa50ba74/bankofamerica/db/867/10038/annual_report/BAC+2023+Annual+Report.pdf
+  - name: Bank of America 2024 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://d1io3yog0oux5.cloudfront.net/_74e7c53fcbb73662d49406a8fa50ba74/bankofamerica/db/867/10162/annual_report/BAC+2024+Annual+Report.pdf
+  - name: Bank of America 2025 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://d1io3yog0oux5.cloudfront.net/_74e7c53fcbb73662d49406a8fa50ba74/bankofamerica/db/867/10497/annual_report/BAC+2025+Annual+Report.pdf
+  - name: Citigroup 2023 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.citigroup.com/rcs/citigpa/storage/public/2023-annual-report.pdf
+  - name: Citigroup 2024 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.citigroup.com/rcs/citigpa/storage/public/2024-annual-report.pdf
+  - name: Citigroup 2025 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.citigroup.com/rcs/citigpa/storage/public/2025-annual-report.pdf
+  - name: Wells Fargo 2023 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.wellsfargo.com/assets/pdf/about/investor-relations/annual-reports/2023-annual-report.pdf
+  - name: Wells Fargo 2024 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.wellsfargo.com/assets/pdf/about/investor-relations/annual-reports/2024-annual-report.pdf
+  - name: Wells Fargo 2025 Annual Report
+    category: IR
+    filetype: pdf
+    link: https://www.wellsfargo.com/assets/pdf/about/investor-relations/annual-reports/2025-annual-report.pdf
